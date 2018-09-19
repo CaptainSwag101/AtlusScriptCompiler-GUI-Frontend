@@ -13,12 +13,6 @@ namespace AtlusScriptCompilerGUIFrontend
 {
     public partial class MainForm : Form
     {
-        public string compileArg = "";
-        public string encodingArg = "";
-        public string libraryArg = "";
-
-        public string outFormatArg = "";
-
         public MainForm()
         {
             InitializeComponent();
@@ -38,99 +32,61 @@ namespace AtlusScriptCompilerGUIFrontend
 
         }
 
-        private void DecompileDragDrop(object sender, DragEventArgs e)
+        private void CompileDecompileDragDrop(object sender, DragEventArgs e)
         {
             string[] fileList = (string[])e.Data.GetData(DataFormats.FileDrop, false);
-            if (fileList.Count() > 0)
+            foreach (string filePath in fileList)
             {
-                string ext = Path.GetExtension(fileList[0]).ToUpper();
-                if (ext == ".BMD" || ext == ".BF")
+                if (!File.Exists("AtlusScriptCompiler.exe"))
                 {
+                    MessageBox.Show("Could not find AtlusScriptCompiler.exe. Put this program in the same folder and try running it again!", "Critical Error", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                    return;
+                }
+
+                string compileArg = "";
+                string encodingArg = "";
+                string libraryArg = "";
+                string outFormatArg = "";
+
+                string ext = Path.GetExtension(filePath.ToUpper());
+                if (ext == ".MSG" || ext == ".FLOW")
+                    compileArg = "-Compile";
+                else if (ext == ".BMD" || ext == ".BF")
                     compileArg = "-Decompile";
-                    UseCompiler(fileList[0], ext);
-                }
-            }
-        }
 
-        private void CompileDragDrop(object sender, DragEventArgs e)
-        {
-            string[] fileList = (string[])e.Data.GetData(DataFormats.FileDrop, false);
-            if (fileList.Count() > 0)
-            {
-                foreach (string filePath in fileList)
-                {
-                    string ext = Path.GetExtension(filePath.ToUpper());
-                    if (ext == ".MSG" || ext == ".FLOW")
-                    {
-                        compileArg = "-Compile";
-                        UseCompiler(filePath, ext);
-                    }
-                }
-            }
-        }
-
-        public void UseCompiler(string droppedFilePath, string extension)
-        {
-            if (File.Exists("AtlusScriptCompiler.exe")) {
                 switch (comboGame.SelectedIndex)
                 {
                     case 0: //P4
                         encodingArg = "-Encoding P4";
-                        if (extension != ".BMD")
+                        if (ext != ".BMD" && ext != ".MSG")
                             libraryArg = "-Library P4";
-                        if (extension == ".MSG" || extension == ".FLOW")
+                        if (ext == ".MSG" || ext == ".FLOW")
                             outFormatArg = "-OutFormat V1";
                         break;
                     case 1: //P5
                         encodingArg = "-Encoding P5";
-                        if (extension != ".BMD")
+                        if (ext != ".BMD" && ext != ".MSG")
                             libraryArg = "-Library P5";
-                        if (extension == ".MSG")
+                        if (ext == ".MSG" || ext == ".FLOW")
                             outFormatArg = "-OutFormat V1BE";
-                        if (extension == ".FLOW")
-                            outFormatArg = "-OutFormat V3BE";
                         break;
                 }
 
                 StringBuilder args = new StringBuilder();
                 args.Append("AtlusScriptCompiler.exe ");
-                args.Append($"\"{droppedFilePath}\" ");
+                args.Append($"\"{filePath}\" ");
                 args.Append($"{compileArg} ");
                 args.Append($"{outFormatArg} ");
                 args.Append($"{libraryArg} ");
                 args.Append($"{encodingArg} ");
 
-                System.Diagnostics.Process.Start("CMD.exe", $"/c {args.ToString()}");
-                droppedFilePath = "";
-                compileArg = "";
-                outFormatArg = "";
-                libraryArg = "";
-                encodingArg = "";
-            }
-            else
-            {
-                MessageBox.Show("Could not find AtlusScriptCompiler.exe. Put this program in the same folder and try running it again!", "Critical Error", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                System.Diagnostics.Process.Start("cmd.exe", $"/c {args.ToString()}");
             }
         }
 
-        private void DecompileDragEnter(object sender, DragEventArgs e)
+        private void CompileDecompileDragEnter(object sender, DragEventArgs e)
         {
             e.Effect = DragDropEffects.Move;
-        }
-
-        private void CompileDragEnter(object sender, DragEventArgs e)
-        {
-            e.Effect = DragDropEffects.Move;
-        }
-
-        private void DecompileClick(object sender, EventArgs e)
-        {
-
-        }
-
-        private void CompileClick(object sender, EventArgs e)
-        {
-
         }
     }
 }
